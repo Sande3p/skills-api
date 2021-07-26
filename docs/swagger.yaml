@@ -1,0 +1,784 @@
+---
+swagger: "2.0"
+info:
+  description: "API for consolidated skills services to be presented to the various\
+    \ presentation and analysis layers of the platform.\
+    \n\n**Pagination**\n\n
+      Requests that return multiple items will be paginated to 20 items by default. You can specify
+      further pages with the `page` parameter. You can also set a custom page
+      size up to 100 with the `perPage` parameter.
+      \n\nPagination response data is included in http headers. By Default, the response header contains links with `next`, `last`, `first`, `prev` resource links.\n\n**Point to note** - the page attributes will have no effect if the data is fetched from db and not from es."
+  version: "1.0.0"
+  title: "Skills API"
+basePath: "/api/1.0"
+tags:
+  - name: "Skills"
+    description: "Skills registered in the system"
+  - name: "Taxonomy"
+    description: "Taxonomies registered in the system"
+schemes:
+  - "https"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+paths:
+  /skills:
+    get:
+      tags:
+        - "Skills"
+      description: "Get list of skills in the application.  If no results, then empty\
+        \ array is returned.  Multiple filters are\nsupported.\n\n**Security** - Note\
+        \ that for non-admin users, this endpoint will only return entities that\n\
+        the user has created.\n"
+      operationId: "skillsGET"
+      parameters:
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/perPage'
+        - name: "taxonomyId"
+          in: "query"
+          description: "The referenced taxonomy id"
+          type: "string"
+          format: "UUID"
+        - name: "externalId"
+          in: "query"
+          description: "The external id of the skill"
+          type: "string"
+        - name: "taxonomyId"
+          in: "query"
+          description: "The taxonomy id of the skill"
+          type: "string"
+        - name: "name"
+          in: "query"
+          description: "The name of the skill"
+          type: "string"
+        - name: "orderBy"
+          in: "query"
+          type: "string"
+          description: "Specify by which field to sort by. Sorts in ascending order only"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Skill"
+          headers:
+            X-Next-Page:
+              type: integer
+              description: The index of the next page
+            X-Page:
+              type: integer
+              description: The index of the current page (starting at 1)
+            X-Per-Page:
+              type: integer
+              description: The number of items to list per page
+            X-Prev-Page:
+              type: integer
+              description: The index of the previous page
+            X-Total:
+              type: integer
+              description: The total number of items
+            X-Total-Pages:
+              type: integer
+              description: The total number of pages
+            Link:
+              type: string
+              description: Pagination link header.
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+    head:
+      tags:
+        - "Skills"
+      description: "Retrieve header information for get operation on Skills in the\
+        \ application.\n\n**Security** - Note that for non-admin users, this endpoint\
+        \ will only return entities that\nthe user has created.\n"
+      operationId: "skillsHEAD"
+      parameters:
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/perPage'
+        - name: "taxonomyId"
+          in: "query"
+          description: "The referenced taxonomy id"
+          type: "string"
+          format: "UUID"
+        - name: "externalId"
+          in: "query"
+          description: "The external id of the skill"
+          type: "string"
+        - name: "name"
+          in: "query"
+          description: "The name of the skill"
+          type: "string"
+      responses:
+        "200":
+          description: "Success response"
+          headers:
+            X-Next-Page:
+              type: integer
+              description: The index of the next page
+            X-Page:
+              type: integer
+              description: The index of the current page (starting at 1)
+            X-Per-Page:
+              type: integer
+              description: The number of items to list per page
+            X-Prev-Page:
+              type: integer
+              description: The index of the previous page
+            X-Total:
+              type: integer
+              description: The total number of items
+            X-Total-Pages:
+              type: integer
+              description: The total number of pages
+            Link:
+              type: string
+              description: Pagination link header.
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+    post:
+      tags:
+        - "Skills"
+      description: "Create a new Skill.\n\n**Security** - This endpoint is accessible\
+        \ by all authenticated users.        \n"
+      operationId: "skillsPOST"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SkillRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+  /skills/{skillId}:
+    get:
+      tags:
+        - "Skills"
+      description: "Get Skill by given skill id.\n\n**Security** - Note that for non-admin\
+        \ users, this endpoint will only return entities that\nthe user has created.\
+        \        \n"
+      operationId: "skillsSkillIdGET"
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+    head:
+      tags:
+        - "Skills"
+      description: "Retrieve header information for get operation on Skill by its\
+        \ Id in the application.\n\n**Security** - Note that for non-admin users,\
+        \ this endpoint will only return entities that\nthe user has created.    \
+        \   \n"
+      operationId: "skillsSkillIdHEAD"
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The user id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+    delete:
+      tags:
+        - "Skills"
+      description: "Remove an existing skill with given id.\n\n**Security** - Note\
+        \ that this endpoint is only available for admin users.  \n"
+      operationId: "skillsSkillIdDELETE"
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "204":
+          description: "OK - the request was successful"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+    patch:
+      tags:
+        - "Skills"
+      description: "Update an existing skill with given id.\n\n**Security** - Note\
+        \ that for non-admin users, this endpoint will only allow updates on entities\
+        \ that the\ncalling user has created.\n"
+      operationId: "skillsSkillIdPATCH"
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SkillUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Skills"
+  /taxonomies:
+    get:
+      tags:
+        - "Taxonomy"
+      description: "Search Taxonomy in the application.  If no results, then\
+        \ empty array is returned.\n\n**Security** - Note that for non-admin users,\
+        \ this endpoint will only return entities that\nthe user has created.\n"
+      operationId: "skillstaxonomiesGET"
+      parameters:
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/perPage'
+        - name: "name"
+          in: "query"
+          description: "Filter by taxonomy name"
+          required: false
+          type: "string"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Taxonomy"
+          headers:
+            X-Next-Page:
+              type: integer
+              description: The index of the next page
+            X-Page:
+              type: integer
+              description: The index of the current page (starting at 1)
+            X-Per-Page:
+              type: integer
+              description: The number of items to list per page
+            X-Prev-Page:
+              type: integer
+              description: The index of the previous page
+            X-Total:
+              type: integer
+              description: The total number of items
+            X-Total-Pages:
+              type: integer
+              description: The total number of pages
+            Link:
+              type: string
+              description: Pagination link header.
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+    head:
+      tags:
+        - "Taxonomy"
+      description: "Retrieve header information for a search operation on taxonomies\
+        \ in the application.\n\n**Security** - Note that for non-admin users, this\
+        \ endpoint will only return entities that\nthe user has created.\n"
+      operationId: "skillstaxonomiesHEAD"
+      parameters:
+        - name: "name"
+          in: "query"
+          description: "Filter by taxonomy name"
+          required: false
+          type: "string"
+      responses:
+        "200":
+          description: "Success response"
+          headers:
+            X-Next-Page:
+              type: integer
+              description: The index of the next page
+            X-Page:
+              type: integer
+              description: The index of the current page (starting at 1)
+            X-Per-Page:
+              type: integer
+              description: The number of items to list per page
+            X-Prev-Page:
+              type: integer
+              description: The index of the previous page
+            X-Total:
+              type: integer
+              description: The total number of items
+            X-Total-Pages:
+              type: integer
+              description: The total number of pages
+            Link:
+              type: string
+              description: Pagination link header.
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+    post:
+      tags:
+        - "Taxonomy"
+      description: "Create a new Taxonomy.\n\n**Security** - This endpoint\
+        \ is accessible by all authenticated users.        \n"
+      operationId: "skillstaxonomiesPOST"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TaxonomyRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+  /taxonomies/{taxonomyId}:
+    get:
+      tags:
+        - "Taxonomy"
+      description: "Get taxonomy with given id.\n\n**Security** - Note that\
+        \ for non-admin users, this endpoint will only return entities that\nthe user\
+        \ has created.        \n"
+      operationId: "skillstaxonomiestaxonomyIdGET"
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+    head:
+      tags:
+        - "Taxonomy"
+      description: "Get taxonomy with given id, but only header information\
+        \ is returned.\n\n**Security** - Note that for non-admin users, this endpoint\
+        \ will only return entities that\nthe user has created.        \n"
+      operationId: "skillstaxonomiestaxonomyIdHEAD"
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+    delete:
+      tags:
+        - "Taxonomy"
+      description: "Remove an existing taxonomy with given id.\n\n**Security**\
+        \ - Note that this endpoint is only available for admin users.  \n"
+      operationId: "skillstaxonomiestaxonomyIdDELETE"
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+      responses:
+        "204":
+          description: "OK - the request was successful"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+    patch:
+      tags:
+        - "Taxonomy"
+      description: "Update an existing taxonomy with given id.\n\n**Security**\
+        \ - Note that for non-admin users, this endpoint will only allow updates on\
+        \ entities that the\ncalling user has created.\n"
+      operationId: "skillstaxonomiestaxonomyIdPATCH"
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TaxonomyUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "409":
+          $ref: "#/definitions/Conflict"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+      x-swagger-router-controller: "Taxonomy"
+
+securityDefinitions:
+  Bearer:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+
+parameters:
+  page:
+    name: page
+    in: query
+    description: The page number.
+    required: false
+    type: integer
+    default: 1
+  perPage:
+    name: perPage
+    in: query
+    description: The number of items to list per page.
+    required: false
+    type: integer
+    default: 20
+    maximum: 100
+
+definitions:
+  Skill:
+    allOf:
+      - type: "object"
+        required:
+          - "externalId"
+          - "id"
+          - "name"
+          - "taxonomyId"
+          - "taxonomyName"
+          - "uri"
+          - "metadata"
+        properties:
+          id:
+            type: "string"
+            format: "UUID"
+            description: "The skill id"
+          taxonomyId:
+            type: "string"
+            format: "UUID"
+            description: "The referenced taxonomy id"
+          taxonomyName:
+            type: "string"
+            description: "The referenced taxonomy name"
+          name:
+            type: "string"
+            description: "The name of the skill"
+          externalId:
+            type: "string"
+            description: "The external id for the skill"
+          uri:
+            type: "string"
+            description: "The uri for the skill"
+          metadata:
+            type: "object"
+            description: "The metadata for the skill"
+            properties:
+              updated:
+                type: "string"
+                format: "date-time"
+                description: "The last updated timestamp of the skill"
+              challengeProminence:
+                type: "string"
+                description: "The challenge prominence ranging from [0, 1]"
+              memberProminence:
+                type: "string"
+                description: "The member prominence ranging from [0, 1]"
+  SkillRequestBody:
+    allOf:
+      - type: "object"
+      - $ref: "#/definitions/SkillUpdateRequestBody"
+  SkillUpdateRequestBody:
+    type: "object"
+    properties:
+      taxonomyId:
+        type: "string"
+        format: "UUID"
+        description: "The id of taxonomy for this Skill."
+      name:
+        type: "string"
+        description: "Name of Skill"
+      uri:
+        type: "string"
+        description: "Uri of Skill"
+      externalId:
+        type: "string"
+        description: "External Id of skill"
+      metadata:
+        type: "object"
+        description: "The metadata for the skill"
+        properties:
+          challengeProminence:
+            type: "string"
+            description: "The challenge prominence ranging from [0, 1]"
+          memberProminence:
+            type: "string"
+            description: "The member prominence ranging from [0, 1]"
+    example:
+      taxonomyId: "taxonomyId"
+      name: "name"
+      externalId: "externalId"
+      uri: "uri"
+      metadata:
+        challengeProminence: "challengeProminence"
+        memberProminence: "memberProminence"
+  Taxonomy:
+    allOf:
+      - type: "object"
+        required:
+          - "id"
+          - "name"
+        properties:
+          id:
+            type: "string"
+            format: "UUID"
+            description: "The id of the taxonomy."
+          name:
+            type: "string"
+            description: "The name of the taxonomy."
+          metadata:
+            type: "object"
+            description: "The metadata of the taxonomy."
+            properties:
+              updated:
+                type: "string"
+                format: "date-time"
+                description: "The last updated timestamp of the taxonomy"
+  TaxonomyRequestBody:
+    allOf:
+      - type: "object"
+      - $ref: "#/definitions/TaxonomyUpdateRequestBody"
+  TaxonomyUpdateRequestBody:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        format: "UUID"
+        description: "The id of the taxonomy."
+      name:
+        type: "string"
+        description: "The name of the taxonomy."
+    example:
+      name: "name"
+  Unauthorized:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        example: "Unable to authenticate the user."
+        description: "The unauthorized error message."
+    description: "The unauthorized error entity."
+  NotFound:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        example: "A resource with the name could not be found."
+        description: "The not found error message."
+    description: "The not found error entity."
+  ServerError:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        example: "Something went wrong while processing your request. We're sorry\
+          \ for the trouble. We've been notified of the error and will correct it\
+          \ as soon as possible. Please try your request again in a moment."
+        description: "The server error message."
+    description: "The server error entity."
+  BadRequest:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        example: "Invalid input."
+        description: "The bad request error message."
+    description: "The bad request error entity."
+  Forbidden:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        example: "You are not allowed to access the request."
+        description: "The forbidden error message."
+    description: "The permission error entity."
+  Conflict:
+    type: "object"
+    required:
+      - "message"
+    properties:
+      message:
+        type: "string"
+        example: "Creating a resource with a name already exists."
+        description: "The conflict error message."
+    description: "The conflict error entity."
