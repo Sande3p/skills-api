@@ -46,7 +46,7 @@ jobs:
     environment:
       DEPLOY_ENV: "DEV"
       LOGICAL_ENV: "dev"
-      APPNAME: "taas-apis"
+      APPNAME: "skills-api"
     steps: *builddeploy_steps
 
   "build-prod":
@@ -54,7 +54,7 @@ jobs:
     environment:
       DEPLOY_ENV: "PROD"
       LOGICAL_ENV: "prod"
-      APPNAME: "taas-apis"
+      APPNAME: "skills-api"
     steps: *builddeploy_steps
 
 workflows:
