@@ -3,7 +3,6 @@ const pgtools = require('pgtools')
 const config = require('config')
 const errors = require('../common/errors')
 const logger = require('../common/logger')
-const appConst = require('../consts')
 const helper = require('../common/helper')
 
 /**
@@ -35,21 +34,10 @@ async function createDb () {
  * search objects
  * @param model the sequelize model object
  * @param query search query
- * @param auth the user auth object
  * @param inlcude what models to include
  * @returns {Promise<void>}
  */
-async function find (model, query, auth = null, include = null) {
-  // for non-admin users, this endpoint will only return entities that the user has created.
-  if (
-    auth &&
-    auth.roles &&
-    !helper.checkIfExists(auth.roles, appConst.AdminUser) &&
-    !helper.checkIfExists(auth.roles, [appConst.UserRoles.ubahn])
-  ) {
-    query.createdBy = helper.getAuthUser(auth)
-  }
-
+async function find (model, query, include = null) {
   // set pagination params
   const options = {}
   if (!query.perPage) {

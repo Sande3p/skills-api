@@ -9,6 +9,7 @@ const errors = require('../../common/errors')
 const helper = require('../../common/helper')
 const dbHelper = require('../../common/db-helper')
 const serviceHelper = require('../../common/service-helper')
+const { PERMISSION } = require('../../permissions/constants')
 const sequelize = require('../../models/index')
 
 const Skill = sequelize.models.Skill
@@ -23,6 +24,11 @@ const uniqueFields = [['taxonomyId', 'externalId', 'name']]
  * @return the created skill
  */
 async function create (entity, auth) {
+  if (Object.keys(entity.metadata).length) {
+    // check permission for adding new metadata fields
+    serviceHelper.hasPermission(PERMISSION.ADD_SKILL_METADATA, auth)
+  }
+
   const taxonomy = await dbHelper.get(Taxonomy, entity.taxonomyId)
   await dbHelper.makeSureUnique(Skill, entity, uniqueFields)
 
@@ -41,9 +47,9 @@ create.schema = {
     uri: joi.string(),
     externalId: joi.string(),
     metadata: joi.object().keys({
-      challengeProminence: joi.prominence('challengeProminence').required(),
-      memberProminence: joi.prominence('memberProminence').required()
-    }).required()
+      challengeProminence: joi.prominence('challengeProminence'),
+      memberProminence: joi.prominence('memberProminence')
+    }).unknown(true).required()
   }).required(),
   auth: joi.object()
 }
@@ -63,7 +69,24 @@ async function patch (id, entity, auth) {
 
   await dbHelper.makeSureUnique(Skill, entity, uniqueFields)
 
-  const newEntity = await dbHelper.update(Skill, id, entity, auth)
+  const instance = await dbHelper.get(Skill, id)
+
+  if (entity.metadata) {
+    if (Object.keys(entity.metadata).length) {
+      // check permission for adding new metadata fields
+      serviceHelper.hasPermission(PERMISSION.ADD_SKILL_METADATA, auth)
+    }
+    if (Object.keys(instance.metadata).length) {
+      // check permission for removing existing metadata fields
+      serviceHelper.hasPermission(PERMISSION.DELETE_SKILL_METADATA, auth)
+    }
+  }
+
+  const newEntity = await instance.update({
+    ...entity,
+    updatedBy: helper.getAuthUser(auth)
+  })
+
   if (!taxonomy) {
     taxonomy = await dbHelper.get(Taxonomy, newEntity.taxonomyId)
   }
@@ -84,7 +107,7 @@ patch.schema = {
     metadata: joi.object().keys({
       challengeProminence: joi.prominence('challengeProminence'),
       memberProminence: joi.prominence('memberProminence')
-    })
+    }).unknown(true)
   }).min(1).required(),
   auth: joi.object()
 }
@@ -92,16 +115,15 @@ patch.schema = {
 /**
  * get skill by id
  * @param id the skill id
- * @param auth the auth obj
  * @param params the path parameters
  * @param query the query parameters
  * @param fromDb Should we bypass Elasticsearch for the record and fetch from db instead?
  * @return the skill
  */
-async function get (id, auth, params, query = {}, fromDb = false) {
+async function get (id, params, query = {}, fromDb = false) {
   const trueParams = _.assign(params, query)
   if (!fromDb) {
-    const esResult = await serviceHelper.getRecordInEs(resource, id, trueParams, auth)
+    const esResult = await serviceHelper.getRecordInEs(resource, id, trueParams)
     await populateTaxonomyNames(esResult)
     if (esResult) {
       return helper.omitAuditFields(esResult)
@@ -115,13 +137,11 @@ async function get (id, auth, params, query = {}, fromDb = false) {
   const skill = recordObj.dataValues
   await populateTaxonomyNames(skill)
 
-  helper.permissionCheck(auth, skill)
   return helper.omitAuditFields(skill)
 }
 
 get.schema = {
   id: joi.string().uuid().required(),
-  auth: joi.object(),
   params: joi.object()
 }
 
@@ -154,14 +174,13 @@ async function populateTaxonomyNames (skills) {
 /**
  * search skills by query
  * @param query the search query
- * @param auth the auth object
  * @return the results
  */
-async function search (query, auth) {
+async function search (query) {
   // get from elasticsearch, if that fails get from db
   // and response headers ('X-Total', 'X-Page', etc.) are not set in case of db return
 
-  const esResult = await serviceHelper.searchRecordInEs(resource, query, auth)
+  const esResult = await serviceHelper.searchRecordInEs(resource, query)
 
   if (esResult) {
     await populateTaxonomyNames(esResult.result)
@@ -169,7 +188,7 @@ async function search (query, auth) {
     return helper.omitAuditFields(esResult)
   }
 
-  let items = await dbHelper.find(Skill, query, auth)
+  let items = await dbHelper.find(Skill, query)
 
   items = items.map(item => item.dataValues)
   await populateTaxonomyNames(items)
@@ -185,8 +204,7 @@ search.schema = {
     name: joi.string(),
     externalId: joi.string(),
     orderBy: joi.string()
-  },
-  auth: joi.object()
+  }
 }
 
 /**

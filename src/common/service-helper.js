@@ -1,7 +1,7 @@
 const errors = require('./errors')
 const esHelper = require('./es-helper')
-const helper = require('./helper')
 const logger = require('./logger')
+const permissionHelper = require('./permission-helper')
 
 // map model name to bus message resource if different
 const MODEL_TO_RESOURCE = {
@@ -54,14 +54,11 @@ async function deleteRecordFromEs (id, params, resource) {
  * @param resource resource to get
  * @param id resource id
  * @param params resource params
- * @param auth resource auth
  */
-async function getRecordInEs (resource, id, params, auth) {
+async function getRecordInEs (resource, id, params) {
   // Merge path and query params
   try {
-    const result = await esHelper.getFromElasticSearch(resource, id, auth, params)
-    // check permission
-    helper.permissionCheck(auth, result)
+    const result = await esHelper.getFromElasticSearch(resource, id, params)
     return result
   } catch (err) {
     // return error if enrich fails or permission fails
@@ -76,9 +73,8 @@ async function getRecordInEs (resource, id, params, auth) {
  * search resource in es
  * @param resource the resource to delete
  * @param query the search query
- * @param auth the auth object
  */
-async function searchRecordInEs (resource, query, auth) {
+async function searchRecordInEs (resource, query) {
   // remove dollar signs that are used for postgres
   for (const key of Object.keys(query)) {
     if (key[0] === '$' && key[key.length - 1] === '$') {
@@ -88,7 +84,7 @@ async function searchRecordInEs (resource, query, auth) {
   }
 
   try {
-    return await esHelper.searchElasticSearch(resource, query, auth)
+    return await esHelper.searchElasticSearch(resource, query)
   } catch (err) {
     logger.logFullError(err)
   }
@@ -108,11 +104,28 @@ function getResource (modelName) {
   }
 }
 
+/**
+ * Check if a user has specific permissions.
+ *
+ * @param {Object} permission     permission or permissionRule
+ * @param {Object} user           user for whom we check permissions
+ * @param {Object} user.roles     list of user roles
+ * @param {Object} user.scopes    scopes of user token
+ * @returns {undefined}
+ */
+function hasPermission (permission, authUser) {
+  if (permissionHelper.hasPermission(permission, authUser)) {
+    return
+  }
+  throw errors.ForbiddenError('You do not have permissions to perform this action')
+}
+
 module.exports = {
   getResource,
   patchRecordInEs,
   deleteRecordFromEs,
   searchRecordInEs,
   createRecordInEs,
-  getRecordInEs
+  getRecordInEs,
+  hasPermission
 }

@@ -17,6 +17,9 @@ module.exports = {
       name: {
         type: DataTypes.STRING
       },
+      metadata: {
+        type: DataTypes.JSONB
+      },
       created: {
         type: DataTypes.DATE,
         allowNull: false

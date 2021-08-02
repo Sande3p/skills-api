@@ -1,6 +1,4 @@
 const querystring = require('querystring')
-const errors = require('./errors')
-const appConst = require('../consts')
 const _ = require('lodash')
 const { getControllerMethods } = require('./controller-helper')
 
@@ -10,38 +8,6 @@ const { getControllerMethods } = require('./controller-helper')
  */
 function getAuthUser (authUser) {
   return authUser.handle || authUser.sub
-}
-
-/**
- * Checks if the source matches the term.
- *
- * @param {Array} source the array in which to search for the term
- * @param {Array | String} term the term to search
- */
-function checkIfExists (source, term) {
-  let terms
-
-  if (!_.isArray(source)) {
-    throw new Error('Source argument should be an array')
-  }
-
-  source = source.map(s => s.toLowerCase())
-
-  if (_.isString(term)) {
-    terms = term.split(' ')
-  } else if (_.isArray(term)) {
-    terms = term.map(t => t.toLowerCase())
-  } else {
-    throw new Error('Term argument should be either a string or an array')
-  }
-
-  for (let i = 0; i < terms.length; i++) {
-    if (source.includes(terms[i])) {
-      return true
-    }
-  }
-
-  return false
 }
 
 /**
@@ -102,22 +68,6 @@ function injectSearchMeta (req, res, result) {
 }
 
 /**
- * some user can only access devices that they created. admin role user can access all devices
- * @param auth the auth object
- * @param recordObj the record object
- */
-function permissionCheck (auth, recordObj) {
-  if (
-    auth &&
-    auth.roles &&
-    !checkIfExists(auth.roles, appConst.AdminUser) &&
-    !checkIfExists(auth.roles, [appConst.UserRoles.ubahn]) &&
-    recordObj.createdBy !== getAuthUser(auth)) {
-    throw errors.newPermissionError('You are not allowed to perform this action')
-  }
-}
-
-/**
  * Removes the audit fields created, createdBy, updatedBy from the given entity or an array of entities
  * and moves the updated to metadata
  * @param entity a single entity or an array of entities
@@ -142,8 +92,6 @@ function omitAuditFields (entity) {
 
 module.exports = {
   getAuthUser,
-  permissionCheck,
-  checkIfExists,
   injectSearchMeta,
   getControllerMethods,
   omitAuditFields

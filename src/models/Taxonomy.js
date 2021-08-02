@@ -15,6 +15,9 @@ module.exports = (sequelize) => {
     },
     name: {
       type: DataTypes.STRING
+    },
+    metadata: {
+      type: DataTypes.JSONB
     }
   },
   {

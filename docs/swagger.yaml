@@ -1,21 +1,41 @@
 ---
 swagger: "2.0"
 info:
-  description: "API for consolidated skills services to be presented to the various\
-    \ presentation and analysis layers of the platform.\
-    \n\n**Pagination**\n\n
-      Requests that return multiple items will be paginated to 20 items by default. You can specify
-      further pages with the `page` parameter. You can also set a custom page
-      size up to 100 with the `perPage` parameter.
-      \n\nPagination response data is included in http headers. By Default, the response header contains links with `next`, `last`, `first`, `prev` resource links.\n\n**Point to note** - the page attributes will have no effect if the data is fetched from db and not from es."
+  description: >
+    API for consolidated skills services to be presented to the various presentation and analysis layers of the platform.
+
+
+    **PAGINATION**
+      Requests that return multiple items will be paginated to 20 items by default. You can specify further pages with the `page` parameter. You can also set a custom page size up to 100 with the `perPage` parameter.
+
+
+      Pagination response data is included in http headers. By Default, the response header contains links with `next`, `last`, `first`, `prev` resource links.
+
+      **Point to note** - the page attributes will have no effect if the data is fetched from db and not from es.
+
+
+
+    **PERMISSION**
+
+    Some endpoints require specific permission to access.
+
+
+    The required permission for each endpoint is mentioned in the endpoint's description section.
+
+
+    For more information about all available permissions for this project, please look at `doc/permission.html` under the project root directory.
   version: "1.0.0"
   title: "Skills API"
 basePath: "/api/1.0"
 tags:
   - name: "Skills"
     description: "Skills registered in the system"
-  - name: "Taxonomy"
+  - name: "Skill Metadata"
+    description: "Metadata for Skills registered in the system"
+  - name: "Taxonomies"
     description: "Taxonomies registered in the system"
+  - name: "Taxonomy Metadata"
+    description: "Metadata for Taxonomies registered in the system"
 schemes:
   - "https"
 consumes:
@@ -27,10 +47,12 @@ paths:
     get:
       tags:
         - "Skills"
-      description: "Get list of skills in the application.  If no results, then empty\
-        \ array is returned.  Multiple filters are\nsupported.\n\n**Security** - Note\
-        \ that for non-admin users, this endpoint will only return entities that\n\
-        the user has created.\n"
+      description: >
+        Get list of skills in the application.
+
+        If no results, then empty array is returned.
+
+        Multiple filters are supported.
       operationId: "skillsGET"
       parameters:
         - $ref: '#/parameters/page'
@@ -43,10 +65,6 @@ paths:
         - name: "externalId"
           in: "query"
           description: "The external id of the skill"
-          type: "string"
-        - name: "taxonomyId"
-          in: "query"
-          description: "The taxonomy id of the skill"
           type: "string"
         - name: "name"
           in: "query"
@@ -87,21 +105,14 @@ paths:
               description: Pagination link header.
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Skills"
     head:
       tags:
         - "Skills"
-      description: "Retrieve header information for get operation on Skills in the\
-        \ application.\n\n**Security** - Note that for non-admin users, this endpoint\
-        \ will only return entities that\nthe user has created.\n"
+      description: >
+        Retrieve header information for get operation on Skills in the application.
       operationId: "skillsHEAD"
       parameters:
         - $ref: '#/parameters/page'
@@ -146,20 +157,22 @@ paths:
               description: Pagination link header.
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Skills"
     post:
       tags:
         - "Skills"
-      description: "Create a new Skill.\n\n**Security** - This endpoint is accessible\
-        \ by all authenticated users.        \n"
+      description: >
+        Create a new Skill.
+
+
+        **PERMISSION**
+
+        1. permission `CREATE_SKILL` is required to perform this operation.
+
+        2. permission `ADD_SKILL_METADATA` is required if any metadata field is provided.
+           (**Note** providing `metadata: {}` inside request body is treated as no metadata provided)
       operationId: "skillsPOST"
       parameters:
         - in: "body"
@@ -189,9 +202,8 @@ paths:
     get:
       tags:
         - "Skills"
-      description: "Get Skill by given skill id.\n\n**Security** - Note that for non-admin\
-        \ users, this endpoint will only return entities that\nthe user has created.\
-        \        \n"
+      description: >
+        Get Skill by given skill id.
       operationId: "skillsSkillIdGET"
       parameters:
         - name: "skillId"
@@ -207,24 +219,16 @@ paths:
             $ref: "#/definitions/Skill"
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "404":
           $ref: "#/definitions/NotFound"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Skills"
     head:
       tags:
         - "Skills"
-      description: "Retrieve header information for get operation on Skill by its\
-        \ Id in the application.\n\n**Security** - Note that for non-admin users,\
-        \ this endpoint will only return entities that\nthe user has created.    \
-        \   \n"
+      description: >
+        Retrieve header information for get operation on Skill by its Id in the application.
       operationId: "skillsSkillIdHEAD"
       parameters:
         - name: "skillId"
@@ -238,22 +242,21 @@ paths:
           description: "OK - the request was successful"
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "404":
           $ref: "#/definitions/NotFound"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Skills"
     delete:
       tags:
         - "Skills"
-      description: "Remove an existing skill with given id.\n\n**Security** - Note\
-        \ that this endpoint is only available for admin users.  \n"
+      description: >
+        Remove an existing skill with given id.
+
+
+        **PERMISSION**
+
+        Permission `DELETE_SKILL` is required to perform this operation.
       operationId: "skillsSkillIdDELETE"
       parameters:
         - name: "skillId"
@@ -281,9 +284,17 @@ paths:
     patch:
       tags:
         - "Skills"
-      description: "Update an existing skill with given id.\n\n**Security** - Note\
-        \ that for non-admin users, this endpoint will only allow updates on entities\
-        \ that the\ncalling user has created.\n"
+      description: >
+        Update an existing skill with given id.
+
+
+        **PERMISSION**
+
+        1. permission `UPDATE_SKILL` is required to perform this operation
+
+        2. permission `ADD_SKILL_METADATA` is required if any metadata field is provided.
+
+        3. permission `DELETE_SKILL_METADATA` is required if there is any existing metadata field in the skill.
       operationId: "skillsSkillIdPATCH"
       parameters:
         - name: "skillId"
@@ -317,13 +328,142 @@ paths:
       security:
         - Bearer: []
       x-swagger-router-controller: "Skills"
+
+  /skills/{skillId}/metadata:
+    put:
+      tags:
+        - "Skill Metadata"
+      description: >
+        Fully update the metadata of an existing skill with given id.
+
+        Used to entirely overwrite existing metadata.
+
+
+        **PERMISSION**
+
+        1. permission `ADD_SKILL_METADATA` is required if any metadata field is provided.
+
+        2. permission `DELETE_SKILL_METADATA` is required if there is any existing metadata field in the skill.
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SkillMetadataUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+    patch:
+      tags:
+        - "Skill Metadata"
+      description: >
+        Partically update the metadata of an existing skill with given id.
+
+        Used to update existing fields in metadata and to add new fields to metadata.
+
+
+        **PERMISSION**
+
+        1. permission `ADD_SKILL_METADATA` is required if any new metadata field is provided.
+
+        2. permission `UPDATE_SKILL_METADATA` is required if any metadata field provided already exist in the skill.
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SkillMetadataUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - "Skill Metadata"
+      description: >
+        Remove fields from the metadata of an existing skill with given id.
+
+        404 error will be raised if one or more of the provided fields is missing in the existing metadata.
+
+
+        **PERMISSION**
+
+        Permission `DELETE_SKILL_METADATA` is required to perform this operation.
+      parameters:
+        - name: "skillId"
+          in: "path"
+          description: "The skill id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SkillMetadataDeleteRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Skill"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+
   /taxonomies:
     get:
       tags:
-        - "Taxonomy"
-      description: "Search Taxonomy in the application.  If no results, then\
-        \ empty array is returned.\n\n**Security** - Note that for non-admin users,\
-        \ this endpoint will only return entities that\nthe user has created.\n"
+        - "Taxonomies"
+      description: >
+        Search Taxonomy in the application.  If no results, then empty array is returned.
       operationId: "skillstaxonomiesGET"
       parameters:
         - $ref: '#/parameters/page'
@@ -364,21 +504,14 @@ paths:
               description: Pagination link header.
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Taxonomy"
     head:
       tags:
-        - "Taxonomy"
-      description: "Retrieve header information for a search operation on taxonomies\
-        \ in the application.\n\n**Security** - Note that for non-admin users, this\
-        \ endpoint will only return entities that\nthe user has created.\n"
+        - "Taxonomies"
+      description: >
+        Retrieve header information for a search operation on taxonomies in the application.
       operationId: "skillstaxonomiesHEAD"
       parameters:
         - name: "name"
@@ -413,20 +546,22 @@ paths:
               description: Pagination link header.
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Taxonomy"
     post:
       tags:
-        - "Taxonomy"
-      description: "Create a new Taxonomy.\n\n**Security** - This endpoint\
-        \ is accessible by all authenticated users.        \n"
+        - "Taxonomies"
+      description: >
+        Create a new Taxonomy.
+
+
+        **PERMISSION**
+
+        1. permission `CREATE_TAXONOMY` is required to perform this operation.
+
+        2. permission `ADD_TAXONOMY_METADATA` is required if any metadata field is provided.
+           (**Note** providing `metadata: {}` inside request body is treated as no metadata provided)
       operationId: "skillstaxonomiesPOST"
       parameters:
         - in: "body"
@@ -455,10 +590,9 @@ paths:
   /taxonomies/{taxonomyId}:
     get:
       tags:
-        - "Taxonomy"
-      description: "Get taxonomy with given id.\n\n**Security** - Note that\
-        \ for non-admin users, this endpoint will only return entities that\nthe user\
-        \ has created.        \n"
+        - "Taxonomies"
+      description: >
+        Get taxonomy with given id.
       operationId: "skillstaxonomiestaxonomyIdGET"
       parameters:
         - name: "taxonomyId"
@@ -474,23 +608,16 @@ paths:
             $ref: "#/definitions/Taxonomy"
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "404":
           $ref: "#/definitions/NotFound"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Taxonomy"
     head:
       tags:
-        - "Taxonomy"
-      description: "Get taxonomy with given id, but only header information\
-        \ is returned.\n\n**Security** - Note that for non-admin users, this endpoint\
-        \ will only return entities that\nthe user has created.        \n"
+        - "Taxonomies"
+      description: >
+        Get taxonomy with given id, but only header information is returned.
       operationId: "skillstaxonomiestaxonomyIdHEAD"
       parameters:
         - name: "taxonomyId"
@@ -504,22 +631,21 @@ paths:
           description: "OK - the request was successful"
         "400":
           $ref: "#/definitions/BadRequest"
-        "401":
-          $ref: "#/definitions/Unauthorized"
-        "403":
-          $ref: "#/definitions/Forbidden"
         "404":
           $ref: "#/definitions/NotFound"
         "500":
           $ref: "#/definitions/ServerError"
-      security:
-        - Bearer: []
       x-swagger-router-controller: "Taxonomy"
     delete:
       tags:
-        - "Taxonomy"
-      description: "Remove an existing taxonomy with given id.\n\n**Security**\
-        \ - Note that this endpoint is only available for admin users.  \n"
+        - "Taxonomies"
+      description: >
+        Remove an existing taxonomy with given id.
+
+
+        **PERMISSION**
+
+        Permission `DELETE_TAXONOMY` is required to perform this operation.
       operationId: "skillstaxonomiestaxonomyIdDELETE"
       parameters:
         - name: "taxonomyId"
@@ -546,10 +672,18 @@ paths:
       x-swagger-router-controller: "Taxonomy"
     patch:
       tags:
-        - "Taxonomy"
-      description: "Update an existing taxonomy with given id.\n\n**Security**\
-        \ - Note that for non-admin users, this endpoint will only allow updates on\
-        \ entities that the\ncalling user has created.\n"
+        - "Taxonomies"
+      description: >
+        Update an existing taxonomy with given id.
+
+
+        **PERMISSION**
+
+        1. permission `UPDATE_TAXONOMY` is required to perform this operation
+
+        2. permission `ADD_TAXONOMY_METADATA` is required if any metadata field is provided.
+
+        3. permission `DELETE_TAXONOMY_METADATA` is required if there is any existing metadata field in the taxonomy.
       operationId: "skillstaxonomiestaxonomyIdPATCH"
       parameters:
         - name: "taxonomyId"
@@ -583,6 +717,134 @@ paths:
       security:
         - Bearer: []
       x-swagger-router-controller: "Taxonomy"
+  /taxonomies/{taxonomyId}/metadata:
+    put:
+      tags:
+        - "Taxonomy Metadata"
+      description: >
+        Fully update the metadata of an existing taxonomy with given id.
+
+        Used to entirely overwrite existing metadata.
+
+
+        **PERMISSION**
+
+        1. permission `ADD_TAXONOMY_METADATA` is required if any metadata field is provided.
+
+        2. permission `DELETE_TAXONOMY_METADATA` is required if there is any existing metadata field in the taxonomy.
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TaxonomyMetadataUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+    patch:
+      tags:
+        - "Taxonomy Metadata"
+      description: >
+        Partically update the metadata of an existing taxonomy with given id.
+
+        Used to update existing fields in metadata and to add new fields to metadata.
+
+
+        **PERMISSION**
+
+        1. permission `ADD_TAXONOMY_METADATA` is required if any new metadata field is provided.
+
+        2. permission `UPDATE_TAXONOMY_METADATA` is required if any metadata field provided already exist in the taxonomy.
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TaxonomyMetadataUpdateRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - "Taxonomy Metadata"
+      description: >
+        Remove fields from the metadata of an existing taxonomy with given id.
+
+        404 error will be raised if one or more of the provided fields is missing in the existing metadata.
+
+
+        **PERMISSION**
+
+        Permission `DELETE_TAXONOMY_METADATA` is required to perform this operation.
+      parameters:
+        - name: "taxonomyId"
+          in: "path"
+          description: "The taxonomy id"
+          required: true
+          type: "string"
+          format: "UUID"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TaxonomyMetadataDeleteRequestBody"
+      responses:
+        "200":
+          description: "OK - the request was successful"
+          schema:
+            $ref: "#/definitions/Taxonomy"
+        "400":
+          $ref: "#/definitions/BadRequest"
+        "401":
+          $ref: "#/definitions/Unauthorized"
+        "403":
+          $ref: "#/definitions/Forbidden"
+        "404":
+          $ref: "#/definitions/NotFound"
+        "500":
+          $ref: "#/definitions/ServerError"
+      security:
+        - Bearer: []
 
 securityDefinitions:
   Bearer:
@@ -692,6 +954,26 @@ definitions:
       metadata:
         challengeProminence: "challengeProminence"
         memberProminence: "memberProminence"
+  SkillMetadataUpdateRequestBody:
+    type: "object"
+    description: "The metadata for a skill. Can contain arbitrary fields"
+    properties:
+      challengeProminence:
+        type: "string"
+        description: "The challenge prominence ranging from [0, 1]"
+      memberProminence:
+        type: "string"
+        description: "The member prominence ranging from [0, 1]"
+    example:
+      verions: "1.0.0"
+      random_field: "random_value"
+  SkillMetadataDeleteRequestBody:
+    type: "array"
+    description: "The list of fields to be removed from the metadata for a skill."
+    items:
+      type: string
+      description: "field name"
+    example: ["version", "random_field"]
   Taxonomy:
     allOf:
       - type: "object"
@@ -728,8 +1010,24 @@ definitions:
       name:
         type: "string"
         description: "The name of the taxonomy."
+      metadata:
+        type: "object"
+        description: "The metadata of the taxonomy."
     example:
       name: "name"
+  TaxonomyMetadataUpdateRequestBody:
+    type: "object"
+    description: "The metadata for a taxonomy. Can contain arbitrary fields"
+    example:
+      verions: "1.0.0"
+      random_field: "random_value"
+  TaxonomyMetadataDeleteRequestBody:
+    type: "array"
+    description: "The list of fields to be removed from the metadata for a taxonomy."
+    items:
+      type: string
+      description: "field name"
+    example: ["version", "random_field"]
   Unauthorized:
     type: "object"
     properties:

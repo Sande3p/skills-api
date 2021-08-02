@@ -9,6 +9,7 @@ const errors = require('../../common/errors')
 const helper = require('../../common/helper')
 const dbHelper = require('../../common/db-helper')
 const serviceHelper = require('../../common/service-helper')
+const { PERMISSION } = require('../../permissions/constants')
 const sequelize = require('../../models/index')
 
 const Taxonomy = sequelize.models.Taxonomy
@@ -22,15 +23,22 @@ const resource = serviceHelper.getResource('Taxonomy')
  * @return the created taxonomy
  */
 async function create (entity, auth) {
+  if (Object.keys(entity.metadata).length) {
+    // check permission for adding new metadata fields
+    serviceHelper.hasPermission(PERMISSION.ADD_TAXONOMY_METADATA, auth)
+  }
+
   const result = await dbHelper.create(Taxonomy, entity, auth)
+
   await serviceHelper.createRecordInEs(resource, result.dataValues)
   return helper.omitAuditFields(result.dataValues)
 }
 
 create.schema = {
   entity: joi.object().keys({
-    name: joi.string().required()
-  }),
+    name: joi.string().required(),
+    metadata: joi.object().default({})
+  }).required(),
   auth: joi.object()
 }
 
@@ -43,7 +51,24 @@ create.schema = {
  * @return the updated taxonomy
  */
 async function patch (id, entity, auth) {
-  const newEntity = await dbHelper.update(Taxonomy, id, entity, auth)
+  const instance = await dbHelper.get(Taxonomy, id)
+
+  if (entity.metadata) {
+    if (Object.keys(entity.metadata).length) {
+      // check permission for adding new metadata fields
+      serviceHelper.hasPermission(PERMISSION.ADD_TAXONOMY_METADATA, auth)
+    }
+    if (Object.keys(instance.metadata).length) {
+      // check permission for removing existing metadata fields
+      serviceHelper.hasPermission(PERMISSION.DELETE_TAXONOMY_METADATA, auth)
+    }
+  }
+
+  const newEntity = await instance.update({
+    ...entity,
+    updatedBy: helper.getAuthUser(auth)
+  })
+
   await serviceHelper.patchRecordInEs(resource, newEntity.dataValues)
   return helper.omitAuditFields(newEntity.dataValues)
 }
@@ -51,24 +76,24 @@ async function patch (id, entity, auth) {
 patch.schema = {
   id: joi.string().uuid().required(),
   entity: joi.object().keys({
-    name: joi.string().required()
-  }).required(),
+    name: joi.string(),
+    metadata: joi.object()
+  }).min(1).required(),
   auth: joi.object()
 }
 
 /**
  * get taxonomy by id
  * @param id the taxonomy id
- * @param auth the auth obj
  * @param params the path parameters
  * @param query the query parameters
  * @param fromDb Should we bypass Elasticsearch for the record and fetch from db instead?
  * @return the db taxonomy
  */
-async function get (id, auth, params, query = {}, fromDb = false) {
+async function get (id, params, query = {}, fromDb = false) {
   const trueParams = _.assign(params, query)
   if (!fromDb) {
-    const esResult = await serviceHelper.getRecordInEs(resource, id, trueParams, auth)
+    const esResult = await serviceHelper.getRecordInEs(resource, id, trueParams)
     if (esResult) {
       return helper.omitAuditFields(esResult)
     }
@@ -79,13 +104,11 @@ async function get (id, auth, params, query = {}, fromDb = false) {
     throw errors.newEntityNotFoundError(`cannot find ${Taxonomy.name} where ${_.map(trueParams, (v, k) => `${k}:${v}`).join(', ')}`)
   }
 
-  helper.permissionCheck(auth, recordObj.dataValues)
   return helper.omitAuditFields(recordObj.dataValues)
 }
 
 get.schema = {
   id: joi.string().uuid().required(),
-  auth: joi.object(),
   params: joi.object(),
   query: joi.object(),
   fromDb: joi.boolean()
@@ -94,19 +117,18 @@ get.schema = {
 /**
  * search taxonomies by query
  * @param query the search query
- * @param auth the auth object
  * @return the results
  */
-async function search (query, auth) {
+async function search (query) {
   // get from elasticsearch, if that fails get from db
   // and response headers ('X-Total', 'X-Page', etc.) are not set in case of db return
-  const esResult = await serviceHelper.searchRecordInEs(resource, query, auth)
+  const esResult = await serviceHelper.searchRecordInEs(resource, query)
   if (esResult) {
     esResult.result = helper.omitAuditFields(esResult.result)
     return esResult
   }
 
-  let items = await dbHelper.find(Taxonomy, query, auth)
+  let items = await dbHelper.find(Taxonomy, query)
   items = helper.omitAuditFields(items.map(i => i.dataValues))
   return { fromDb: true, result: items, total: items.length }
 }
@@ -116,8 +138,7 @@ search.schema = {
     page: joi.string().uuid(),
     perPage: joi.pageSize(),
     name: joi.string()
-  },
-  auth: joi.object()
+  }
 }
 
 /**

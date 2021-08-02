@@ -1,7 +1,6 @@
 const config = require('config')
 const _ = require('lodash')
 const logger = require('../common/logger')
-const appConst = require('../consts')
 const esClient = require('./es-client').getESClient()
 
 const DOCUMENTS = config.ES.DOCUMENTS
@@ -288,14 +287,9 @@ async function resolveResFilter (filter, initialRes) {
  * @returns {Promise<*>} the promise of searched results
  */
 async function searchElasticSearch (resource, ...args) {
-  const {
-    checkIfExists,
-    getAuthUser
-  } = require('./helper')
   logger.debug(`Searching ES first with query args: ${JSON.stringify(args[0], null, 2)}`)
   // path and query parameters
   const params = args[0]
-  const authUser = args[1]
   const doc = DOCUMENTS[resource]
   if (!params.page) {
     params.page = 1
@@ -336,15 +330,6 @@ async function searchElasticSearch (resource, ...args) {
       },
       sort: sortClause
     }
-  }
-
-  // for non-admin, only return entities that the user created
-  if (
-    authUser.roles &&
-    !checkIfExists(authUser.roles, appConst.AdminUser) &&
-    !checkIfExists(authUser.roles, [appConst.UserRoles.ubahn])
-  ) {
-    setFilterValueToEsQuery(esQuery, 'createdBy', getAuthUser(authUser), 'createdBy')
   }
 
   // set pre res filter results

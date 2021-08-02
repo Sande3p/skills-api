@@ -1,5 +1,14 @@
 # Skills API
 
+* [Prerequisites](#prerequisites)
+* [Configuration](#configuration)
+* [Local deployment](#local-deployment)
+* [Migrations](#migrations)
+* [Local Deployment with Docker](#local-deployment-with-docker)
+* [NPM Commands](#npm-commands)
+* [JWT Authentication](#jwt-authentication)
+* [Documentation](#documentation)
+
 ## Prerequisites
 
 - node 12.x+
@@ -84,6 +93,7 @@ Migrations are located under the `./scripts/db/` folder. Run `npm run migrations
 | Command&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 |--------------------|--|
 | `npm run start`  | Start app |
+| `npm run start:dev`  | Start app on any changes (useful during development). |
 | `npm run lint`     | Check for for lint errors. |
 | `npm run lint:fix` | Check for for lint errors and fix error automatically when possible. |
 | `npm run create-db`    | Create the database |
@@ -92,3 +102,56 @@ Migrations are located under the `./scripts/db/` folder. Run `npm run migrations
 | `npm run delete-data`  | Delete the data from the database |
 | `npm run migrations up`  | Run up migration |
 | `npm run migrations down`  | Run down migration |
+| `npm run generate:doc:permissions` | Generate [permissions.html](docs/permissions.html) |
+| `npm run generate:doc:permissions:dev` | Generate [permissions.html](docs/permissions.html) on any changes (useful during development). |
+
+## JWT Authentication
+Authentication is handled via Authorization (Bearer) token header field. Token is a JWT token.
+
+Here is a sample user token that is valid for a very long time for a user with administrator role.
+
+```
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIiwiYWRtaW5pc3RyYXRvciJdLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJoYW5kbGUiOiJ0Yy1BZG1pbiIsImV4cCI6MTY4NTU3MTQ2MCwidXNlcklkIjoiMjMxNjY3NjgiLCJpYXQiOjE1ODU1NzA4NjAsImVtYWlsIjoidGMtQWRtaW5AZ21haWwuY29tIiwianRpIjoiMGYxZWYxZDMtMmIzMy00OTAwLWJiNDMtNDhmMjI4NWY5NjMwIn0.aWTGj-EFbgoPCdJQbiax4zCTCwLKcPPyjTey7J3RLqM
+
+# here is the payload data decoded from the token
+{
+  "roles": [
+    "Topcoder User",
+    "administrator"
+  ],
+  "iss": "https://api.topcoder.com",
+  "handle": "tc-Admin",
+  "exp": 1685571460,
+  "userId": "23166768",
+  "iat": 1585570860,
+  "email": "tc-Admin@gmail.com",
+  "jti": "0f1ef1d3-2b33-4900-bb43-48f2285f9630"
+}
+```
+
+and this is a sample M2M token with scopes `all:connect_project`, `all:projects` and `write:projects`.
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjIxNDc0ODM2NDgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJhbGw6Y29ubmVjdF9wcm9qZWN0IGFsbDpwcm9qZWN0cyB3cml0ZTpwcm9qZWN0cyIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.WZRZy1RBQq1xs-sPl-5jbLBQv3tuYR3PN67Tgdgm7IA
+
+# here is the payload data decoded from the token
+{
+  "iss": "https://topcoder-dev.auth0.com/",
+  "sub": "enjw1810eDz3XTwSO2Rn2Y9cQTrspn3B@clients",
+  "aud": "https://m2m.topcoder-dev.com/",
+  "iat": 1550906388,
+  "exp": 2147483648,
+  "azp": "enjw1810eDz3XTwSO2Rn2Y9cQTrspn3B",
+  "scope": "all:connect_project all:projects write:projects",
+  "gty": "client-credentials"
+}
+```
+
+These tokens have been signed with the secret `CLIENT_SECRET`. This secret should match the `AUTH_SECRET` entry in `config/default.js`. You can modify the payload of these tokens to generate tokens with different roles or different scopes using https://jwt.io
+
+**Note** Please check with `src/constants.js` for all available user roles and M2M scopes.
+
+## Documentation
+
+- [permissions.html](docs/permissions.html) - the list of all permissions in Skills API.
+- [swagger.yaml](docs/swagger.yaml) - the Swagger API Definition.
