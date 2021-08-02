@@ -111,7 +111,7 @@ Authentication is handled via Authorization (Bearer) token header field. Token i
 Here is a sample user token that is valid for a very long time for a user with administrator role.
 
 ```
-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIiwiYWRtaW5pc3RyYXRvciJdLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJoYW5kbGUiOiJ0Yy1BZG1pbiIsImV4cCI6MTY4NTU3MTQ2MCwidXNlcklkIjoiMjMxNjY3NjgiLCJpYXQiOjE1ODU1NzA4NjAsImVtYWlsIjoidGMtQWRtaW5AZ21haWwuY29tIiwianRpIjoiMGYxZWYxZDMtMmIzMy00OTAwLWJiNDMtNDhmMjI4NWY5NjMwIn0.aWTGj-EFbgoPCdJQbiax4zCTCwLKcPPyjTey7J3RLqM
+<provide_in_forums>
 
 # here is the payload data decoded from the token
 {
@@ -132,7 +132,7 @@ eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIiwiYWRtaW5
 and this is a sample M2M token with scopes `all:connect_project`, `all:projects` and `write:projects`.
 
 ```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjIxNDc0ODM2NDgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJhbGw6Y29ubmVjdF9wcm9qZWN0IGFsbDpwcm9qZWN0cyB3cml0ZTpwcm9qZWN0cyIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.WZRZy1RBQq1xs-sPl-5jbLBQv3tuYR3PN67Tgdgm7IA
+<provided_in_forums>
 
 # here is the payload data decoded from the token
 {
